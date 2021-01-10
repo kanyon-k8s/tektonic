@@ -1,0 +1,11 @@
+﻿.content {
+}
+
+.justnet-container {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.justnet-item {
+    width: 50%;
+}

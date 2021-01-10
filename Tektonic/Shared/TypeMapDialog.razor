@@ -1,0 +1,45 @@
+﻿@inject Tektonic.CodeGen.TypeMapManager typeMapManager
+@using Newtonsoft.Json
+
+<BFUModal ContainerClass="modalContainerOverride" IsOpen="IsOpen" OnDismiss="Close">
+    <ChildContent>
+        <div style="padding:10px;" class="largeFont">
+            <span>Type Map</span>
+        </div>
+        <div style="padding: 10px;">
+            <p><BFUTextField Multiline="true" Placeholder="Type Map (JSON)" @bind-Value="typeMapJson" /></p>
+            <p>
+                <BFUTextField Placeholder="Fallback Type" @bind-Value="fallbackType" />
+            </p>
+        </div>
+    </ChildContent>
+</BFUModal>
+
+@code { 
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    private string typeMapJson { get; set; }
+    private string fallbackType { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!IsOpen && !string.IsNullOrEmpty(typeMapJson))
+        {
+            typeMapManager.CurrentTypeMap = JsonConvert.DeserializeObject<Dictionary<string, Type>>(typeMapJson);
+            typeMapManager.FallbackType = Type.GetType(fallbackType);
+        }
+        else
+        {
+            typeMapJson = JsonConvert.SerializeObject(typeMapManager.CurrentTypeMap, Formatting.Indented);
+            fallbackType = typeMapManager.FallbackType.ToString();
+        }
+
+        base.OnParametersSet();
+    }
+
+    private void Close()
+    {
+        IsOpen = false;
+    }
+}

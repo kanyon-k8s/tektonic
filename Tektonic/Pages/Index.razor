@@ -1,0 +1,28 @@
+﻿@page "/"
+@inject Tektonic.CodeGen.ManifestGenerator generator
+
+<BFUCommandBar Items="@Items" FarItems="@FarItems">
+</BFUCommandBar>
+
+<div>
+    <div class="justnet-container">
+        <div class="justnet-item">
+            <Editor Language="yaml" @ref="yamlEditor" OnContentChanged="OnContentChanged" />
+        </div>
+        <div class="justnet-item">
+            <Editor Language="csharp" @ref="csharpEditor" />
+        </div>
+    </div>
+
+    <!-- TODO: Move into separate component -->
+    <BFUPanel IsOpen="IsSettingsOpen" Type="@PanelType.Medium" OnDismiss="() => IsSettingsOpen = false" HeaderText="Manifest Settings">
+        <p>
+            Manifest Name
+            <BFUTextField @bind-Value="ManifestName" @bind-Value:event="OnInput" />
+            Manifest Type
+            <BFUDropdown ItemsSource="@ManifestBaseClasses" @bind-SelectedOption="ManifestBaseClass" />
+        </p>
+    </BFUPanel>
+
+    <TypeMapDialog IsOpen="IsTypeMapOpen"></TypeMapDialog>
+</div>

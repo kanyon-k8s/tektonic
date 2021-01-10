@@ -1,0 +1,29 @@
+﻿<MonacoEditor ConstructionOptions="EditorConstructionOptions" @ref="editor" CssClass="editor-class" OnDidChangeModelContent="OnContentChanged" />
+
+@code {
+    [Parameter]
+    public string Language { get; set; }
+
+    [Parameter]
+    public EventCallback<BlazorMonaco.Bridge.ModelContentChangedEvent> OnContentChanged { get; set; }
+
+    public async Task<string> GetContent() => await editor?.GetValue();
+
+    public async Task SetContent(string value)
+    {
+        await editor.SetValue(value);
+    }
+
+    private MonacoEditor editor;
+
+    private BlazorMonaco.Bridge.StandaloneEditorConstructionOptions EditorConstructionOptions(MonacoEditor editor)
+    {
+        return new BlazorMonaco.Bridge.StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Minimap = new BlazorMonaco.Bridge.MinimapOptions { Enabled = false },
+            FixedOverflowWidgets = true,
+            Language = Language
+        };
+    }
+}
