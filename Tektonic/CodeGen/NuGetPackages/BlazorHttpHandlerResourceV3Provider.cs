@@ -42,13 +42,6 @@ namespace Tektonic.CodeGen.Packages
             // HTTP handler pipeline can be injected here, around the client handler
             HttpMessageHandler messageHandler = new ServerWarningLogHandler(clientHandler);
 
-            //var innerHandler = messageHandler;
-
-            //messageHandler = new HttpSourceAuthenticationHandler(packageSource, clientHandler, HttpHandlerResourceV3.CredentialService?.Value)
-            //{
-            //    InnerHandler = innerHandler
-            //};
-
             var resource = new HttpHandlerResourceV3(clientHandler, messageHandler);
 
             return resource;
