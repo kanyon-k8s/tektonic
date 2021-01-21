@@ -18,17 +18,21 @@
     [Parameter]
     public bool IsOpen { get; set; }
 
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
     private string packageName;
 
     private async void Add()
     {
         await TypeLoader.LoadAssemblyFromNuGetAsync(packageName);
-        IsOpen = false;
-        StateHasChanged();
+        Close();
     }
 
-    private void Close()
+    private async void Close()
     {
         IsOpen = false;
+        await IsOpenChanged.InvokeAsync(IsOpen);
+        StateHasChanged();
     }
 }

@@ -19,6 +19,9 @@
     [Parameter]
     public bool IsOpen { get; set; }
 
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
     private string typeMapJson { get; set; }
     private string fallbackType { get; set; }
 
@@ -41,5 +44,6 @@
     private void Close()
     {
         IsOpen = false;
+        IsOpenChanged.InvokeAsync(IsOpen);
     }
 }
