@@ -24,9 +24,10 @@ namespace Tektonic
 
             builder.Services.AddBlazorDownloadFile();
 
-            builder.Services.AddSingleton<ITypeMapInitializer, SingleAssemblyReflectionTypeMapInitializer>();
+            builder.Services.AddSingleton<ITypeMapInitializer, SingleAssemblyReflectionTypeMapInitializer>((_) => new SingleAssemblyReflectionTypeMapInitializer(typeof(Kanyon.Kubernetes.Core.V1.ObjectMeta)));
             builder.Services.AddSingleton<TypeMapManager>();
             builder.Services.AddSingleton<ManifestGenerator>();
+            builder.Services.AddSingleton<TypeLoader>();
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

@@ -17,6 +17,7 @@ namespace Tektonic.Pages
 
         private bool IsSettingsOpen { get; set; }
         private bool IsTypeMapOpen { get; set; }
+        private bool IsTypeLoaderOpen { get; set; }
 
         private string ManifestName { get; set; }
         private IBFUDropdownOption ManifestBaseClass { get; set; }
@@ -32,6 +33,7 @@ namespace Tektonic.Pages
             GenerateCsProjCommand = new RelayCommand(GenerateCsProj);
             OpenSettingsCommand = new RelayCommand(_ => { IsSettingsOpen = true; StateHasChanged(); });
             OpenTypeMapCommand = new RelayCommand(_ => { IsTypeMapOpen = true; StateHasChanged(); });
+            OpenTypeLoaderCommand = new RelayCommand(_ => { IsTypeLoaderOpen = true; StateHasChanged(); });
 
             Items = new List<BFUCommandBarItem>()
             {
@@ -48,7 +50,7 @@ namespace Tektonic.Pages
             FarItems = new List<BFUCommandBarItem>
             {
                 new BFUCommandBarItem() { IconName = "HighlightMappedShapes", Text = "Type Map", IconOnly = true, Command = OpenTypeMapCommand },
-                new BFUCommandBarItem() { IconName = "Add", Text = "Add Kanyon TypeLib", IconOnly = true }
+                new BFUCommandBarItem() { IconName = "Add", Text = "Add Kanyon TypeLib", IconOnly = true, Command = OpenTypeLoaderCommand }
             };
 
 
@@ -148,5 +150,6 @@ namespace Tektonic.Pages
 
         public RelayCommand OpenSettingsCommand { get; private set; }
         public RelayCommand OpenTypeMapCommand { get; private set; }
+        public RelayCommand OpenTypeLoaderCommand { get; private set; }
     }
 }

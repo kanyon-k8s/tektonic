@@ -61,12 +61,14 @@ namespace Tektonic.Serialization
                 var obj = deserializer.Deserialize<ManifestObject>(parser);
 
                 string key = obj.apiVersion + "/" + obj.kind;
-                if (!typeMap.ContainsKey(key))
+                if (typeMap.ContainsKey(key))
+                {
+                    types.Add(typeMap[key]);
+                }
+                else
                 {
                     types.Add(fallbackType);
                 }
-
-                types.Add(typeMap[key]);
             }
 
             // Reinitialize the deserializer

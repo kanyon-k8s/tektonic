@@ -1,0 +1,34 @@
+﻿@inject Tektonic.CodeGen.TypeLoader TypeLoader
+
+<BFUModal ContainerClass="modalContainerOverride" IsOpen="IsOpen" OnDismiss="Close">
+    <ChildContent>
+        <div style="padding:10px;" class="largeFont">
+            <span>Load Types</span>
+        </div>
+        <div style="padding: 10px;">
+            <p>
+                <BFUTextField Placeholder="NuGet Package" @bind-Value="packageName" />
+            </p>
+        </div>
+        <BFUActionButton Text="Add" IconName="Add" OnClick="Add" />
+    </ChildContent>
+</BFUModal>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    private string packageName;
+
+    private async void Add()
+    {
+        await TypeLoader.LoadAssemblyFromNuGetAsync(packageName);
+        IsOpen = false;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsOpen = false;
+    }
+}

@@ -27,7 +27,8 @@ namespace Tektonic.CodeGen
                 IgnoreDefaultValues = true,
                 UseTypeFullName = true,
                 TrimInitialVariableName = true,
-                TrimTrailingColonName = true
+                TrimTrailingColonName = true,
+                IndentSize = 4
             };
 
             options.CustomInstanceFormatters.AddFormatter<IntOrString>(ios => $"\"{ios.Value}\"");
@@ -52,7 +53,7 @@ namespace Tektonic.CodeGen
                 stringBuilder.Append(@"
     {
 ");
-                stringBuilder.AppendJoin("\n", manifests.Select(manifest => $"       Add({ObjectDumper.Dump(manifest, options)});"));
+                stringBuilder.AppendJoin("\n", manifests.Select(manifest => $"        Add({Indent(ObjectDumper.Dump(manifest, options), 2)});"));
 
                 stringBuilder.Append(@"
     }
@@ -61,6 +62,12 @@ namespace Tektonic.CodeGen
             }
 
             return null;
+        }
+
+        protected string Indent(string value, int tabs)
+        {
+            var indent = new string(' ', tabs * 4);
+            return value.Replace("\n", "\n" + indent);
         }
 
         private object GetFunctionHeader(ManifestOptions options)
@@ -124,7 +131,8 @@ namespace Tektonic.GeneratedManifests {
 
         public string GenerateCsProjFile()
         {
-            return @"
+            StringBuilder proj = new StringBuilder();
+            proj.AppendLine(@"
 <Project Sdk=""Microsoft.NET.Sdk"">
 
   <PropertyGroup>
@@ -132,10 +140,20 @@ namespace Tektonic.GeneratedManifests {
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include=""Kanyon.Kubernetes"" Version=""3.1.2"" />
-  </ItemGroup>
+    <PackageReference Include=""Kanyon.Kubernetes"" Version=""3.1.2"" />");
+            if (typeMapManager.NuGetPackages.Any())
+            {
+                foreach (var package in typeMapManager.NuGetPackages)
+                {
+                    proj.AppendLine($"    <PackageReference Include=\"{package.Package}\" Version=\"{package.Version}\" />");
+                }
+                
+            }
+            proj.Append(@"  </ItemGroup>
 
-</Project>";
+</Project>");
+
+            return proj.ToString().Trim();
         }
 
         public byte[] GenerateCsProj(string yaml, ManifestOptions manifestOptions)

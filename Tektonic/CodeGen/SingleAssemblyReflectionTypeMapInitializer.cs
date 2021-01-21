@@ -21,7 +21,7 @@ namespace Tektonic.CodeGen
 
         public Dictionary<string, Type> GetTypeMap()
         {
-            var assembly = Assembly.GetAssembly(typeof(Kanyon.Kubernetes.Core.V1.ObjectMeta));
+            //var assembly = Assembly.GetAssembly(typeof(Kanyon.Kubernetes.Core.V1.ObjectMeta));
             var types = assembly.GetTypes().Where(t => t.IsAssignableTo(typeof(IManifestObject)));
 
             return types.ToDictionary(t =>

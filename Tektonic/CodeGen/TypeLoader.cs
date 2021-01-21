@@ -1,4 +1,8 @@
-﻿using System.Reflection;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using System.Linq;
+using System.Reflection;
+using Tektonic.CodeGen.Packages;
 
 namespace Tektonic.CodeGen
 {
@@ -14,16 +18,30 @@ namespace Tektonic.CodeGen
         public void LoadAssemblyFromDll(byte[] dll, byte[] pdb = null)
         {
             var assembly = Assembly.Load(dll, pdb);
+            LoadAssemblyIntoTypeMap(assembly);
+        }
 
+        private void LoadAssemblyIntoTypeMap(Assembly assembly)
+        {
             var initializer = new SingleAssemblyReflectionTypeMapInitializer(assembly);
             var newMap = initializer.GetTypeMap();
 
-            typeManager.CurrentTypeMap.Add(newMap);
+            if (newMap.Any()) 
+                typeManager.CurrentTypeMap.Add(newMap);
         }
 
-        public void LoadAssemblyFromNuGet(string packageName, string feedUrl = "")
+        public async System.Threading.Tasks.Task LoadAssemblyFromNuGetAsync(string packageName, string feedUrl = "")
         {
+            var loader = new Loader();
+            var package = new NuGetPackage { Package = packageName };
+            var assemblies = await loader.LoadPackage(package);
 
+            foreach (var assembly in assemblies)
+            {
+                LoadAssemblyIntoTypeMap(assembly);
+            }
+
+            typeManager.NuGetPackages.Add(package);
         }
     }
 }

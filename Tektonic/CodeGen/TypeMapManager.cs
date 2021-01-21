@@ -11,6 +11,8 @@ namespace Tektonic.CodeGen
 
         public Dictionary<string, Type> CurrentTypeMap { get; set; }
 
+        public List<NuGetPackage> NuGetPackages { get; set; } = new List<NuGetPackage>();
+
         public Type FallbackType { get; set; }
 
         public TypeMapManager(ITypeMapInitializer initializer)
@@ -24,5 +26,12 @@ namespace Tektonic.CodeGen
             CurrentTypeMap = initializer.GetTypeMap();
             FallbackType = initializer.GetFallbackType();
         }
+    }
+
+    public class NuGetPackage
+    {
+        public string Package { get; set; }
+        public string Version { get; set; }
+        public bool AllowPrerelease { get; set; }
     }
 }
