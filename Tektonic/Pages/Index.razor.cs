@@ -22,6 +22,8 @@ namespace Tektonic.Pages
         private string ManifestName { get; set; }
         private IBFUDropdownOption ManifestBaseClass { get; set; }
 
+        private string Error { get; set; }
+
         private List<IBFUDropdownOption> ManifestBaseClasses { get; set; } = new List<IBFUDropdownOption> { new BFUDropdownOption() { Text = "Manifest", Key = "Manifest" }, new BFUDropdownOption { Text = "ConfiguredManifest<>", Key = "ConfiguredManifest" } };
 
         [Inject] IBlazorDownloadFileService BlazorDownloadFileService { get; set; }
@@ -34,9 +36,11 @@ namespace Tektonic.Pages
             OpenSettingsCommand = new RelayCommand(_ => { IsSettingsOpen = true; StateHasChanged(); });
             OpenTypeMapCommand = new RelayCommand(_ => { IsTypeMapOpen = true; StateHasChanged(); });
             OpenTypeLoaderCommand = new RelayCommand(_ => { IsTypeLoaderOpen = true; StateHasChanged(); });
+            GeneratePreviewCommand = new RelayCommand(async _ => { await GeneratePreview(); StateHasChanged(); }, CanGeneratePreview);
 
             Items = new List<BFUCommandBarItem>()
             {
+                new BFUCommandBarItem() { IconName = "Generate", Text = "Generate", Command = GeneratePreviewCommand },
                 new BFUCommandBarItem() { IconName = "Save", Text = "Download", Items = new List<BFUCommandBarItem>
                     {
                         new BFUCommandBarItem() { Text = "C# Script (.csx)", IconName = "Script", Command = GenerateCsxCommand },
@@ -61,6 +65,8 @@ namespace Tektonic.Pages
         private List<BFUCommandBarItem> Items { get; set; }
         private List<BFUCommandBarItem> FarItems { get; set; }
 
+        private bool AreChangesMade;
+
         private ManifestOptions BuildManifestOptions()
         {
             return new ManifestOptions
@@ -70,19 +76,42 @@ namespace Tektonic.Pages
             };
         }
 
-        private async Task OnContentChanged(BlazorMonaco.Bridge.ModelContentChangedEvent ev)
+        private void OnContentChanged()
+        {
+            ClearError();
+            AreChangesMade = true;
+            GeneratePreviewCommand.OnCanExecuteChanged();
+            StateHasChanged();
+        }
+
+        private bool CanGeneratePreview(object parameter)
+        {
+           return AreChangesMade;
+        }
+
+        public RelayCommand GeneratePreviewCommand { get; private set; }
+        private async Task GeneratePreview()
         {
             try
             {
                 string manifest = await GenerateManifest();
 
                 await csharpEditor.SetContent(manifest);
+
+                AreChangesMade = false;
+                GeneratePreviewCommand.OnCanExecuteChanged();
             }
             catch (Exception ex)
             {
                 // Write to Snackbar
+                Error = ex.Message;
                 Console.WriteLine(ex);
             }
+        }
+
+        public void ClearError()
+        {
+            Error = null;
         }
 
         private async Task<string> GenerateManifest()

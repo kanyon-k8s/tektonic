@@ -5,6 +5,12 @@
 </BFUCommandBar>
 
 <div>
+    @if (!string.IsNullOrWhiteSpace(Error)) 
+    { 
+        <BFUMessageBar OnDismiss="ClearError" MessageBarType="MessageBarType.Error">
+            <ChildContent>@Error</ChildContent>
+        </BFUMessageBar>
+    }
     <div class="justnet-container">
         <div class="justnet-item">
             <Editor Language="yaml" @ref="yamlEditor" OnContentChanged="OnContentChanged" />
