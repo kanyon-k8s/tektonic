@@ -22,20 +22,35 @@
     [Parameter]
     public EventCallback<bool> IsOpenChanged { get; set; }
 
-    private string typeMapJson { get; set; }
+    private bool isTypeMapDirty;
+    private string _typeMapJson;
+    private string typeMapJson
+    {
+        get
+        {
+            return _typeMapJson;
+        }
+        set
+        {
+            _typeMapJson = value;
+            isTypeMapDirty = true;
+        }
+    }
     private string fallbackType { get; set; }
 
     protected override void OnParametersSet()
     {
-        if (!IsOpen && !string.IsNullOrEmpty(typeMapJson))
+        if (!IsOpen && !string.IsNullOrEmpty(typeMapJson) && isTypeMapDirty)
         {
             typeMapManager.CurrentTypeMap = JsonConvert.DeserializeObject<Dictionary<string, Type>>(typeMapJson);
             typeMapManager.FallbackType = Type.GetType(fallbackType);
+            isTypeMapDirty = false;
         }
         else
         {
             typeMapJson = JsonConvert.SerializeObject(typeMapManager.CurrentTypeMap, Formatting.Indented);
             fallbackType = typeMapManager.FallbackType.ToString();
+            isTypeMapDirty = false;
         }
 
         base.OnParametersSet();

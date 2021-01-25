@@ -1,9 +1,22 @@
 ﻿@inject Tektonic.CodeGen.TypeLoader TypeLoader
+@inject Tektonic.CodeGen.TypeMapManager TypeMapManager
+@using Tektonic.CodeGen 
 
 <BFUModal ContainerClass="modalContainerOverride" IsOpen="IsOpen" OnDismiss="Close">
     <ChildContent>
         <div style="padding:10px;" class="largeFont">
             <span>Load Types</span>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Message)) 
+        {
+            <BFUMessageBar MessageBarType="MessageBarType.Success">
+                <ChildContent>
+                    @Message
+                </ChildContent>
+            </BFUMessageBar>
+        }
+        <div style="height: 250px;" data-is-scrollable>
+            <BFUDetailsList ItemsSource="Packages" Columns="Columns" SelectionMode="SelectionMode.None" LayoutMode="DetailsListLayoutMode.Justified"></BFUDetailsList>
         </div>
         <div style="padding: 10px;">
             <p>
@@ -23,10 +36,43 @@
 
     private string packageName;
 
+    private string Message { get; set; }
+    private MessageBarType MessageType { get; set; }
+
+    private List<NuGetPackage> Packages { get { return TypeMapManager.NuGetPackages; } }
+
+    private List<BFUDetailsRowColumn<NuGetPackage>> Columns { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Columns = new List<BFUDetailsRowColumn<NuGetPackage>>()
+        {
+            new BFUDetailsRowColumn<NuGetPackage>("Package", p => p.Package),
+            new BFUDetailsRowColumn<NuGetPackage>("Version", p => p.Version)
+        };
+    }
+
     private async void Add()
     {
-        await TypeLoader.LoadAssemblyFromNuGetAsync(packageName);
-        Close();
+        try
+        {
+            await TypeLoader.LoadAssemblyFromNuGetAsync(packageName);
+            SetMessage($"{packageName} added successfully!");
+        }
+        catch (Exception ex)
+        {
+            SetMessage($"Failed to add NuGet Package {packageName}. {ex.Message}", MessageBarType.Error);
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void SetMessage(string message, MessageBarType messageBarType = MessageBarType.Success)
+    {
+        MessageType = messageBarType;
+        Message = message;
     }
 
     private async void Close()
