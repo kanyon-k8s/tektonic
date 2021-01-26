@@ -9,18 +9,25 @@
         </div>
         @if (!string.IsNullOrWhiteSpace(Message)) 
         {
-            <BFUMessageBar MessageBarType="MessageBarType.Success">
+            <BFUMessageBar MessageBarType="MessageType" OnDismiss="OnDismiss">
                 <ChildContent>
                     @Message
                 </ChildContent>
             </BFUMessageBar>
         }
         <div style="height: 250px;" data-is-scrollable>
-            <BFUDetailsList ItemsSource="Packages" Columns="Columns" SelectionMode="SelectionMode.None" LayoutMode="DetailsListLayoutMode.Justified"></BFUDetailsList>
+            <BFUDetailsList ItemsSource="Packages" 
+                            TItem="NuGetPackage"
+                            Columns="Columns" 
+                            SelectionMode="SelectionMode.None" 
+                            Selection="selection" 
+                            GetKey=@(item => item.Package) 
+                            OnItemInvoked="OnItemClick"
+                            LayoutMode="DetailsListLayoutMode.Justified"></BFUDetailsList>
         </div>
         <div style="padding: 10px;">
             <p>
-                <BFUTextField Placeholder="NuGet Package" @bind-Value="packageName" />
+                <BFUTextField Placeholder="NuGet Package" @bind-Value="packageName" @bind-Value:event="onchange" />
             </p>
         </div>
         <BFUActionButton Text="Add" IconName="Add" OnClick="Add" />
@@ -34,12 +41,14 @@
     [Parameter]
     public EventCallback<bool> IsOpenChanged { get; set; }
 
-    private string packageName;
+    public string packageName { get; set; }
+
+    private Selection<NuGetPackage> selection = new Selection<NuGetPackage>();
 
     private string Message { get; set; }
     private MessageBarType MessageType { get; set; }
 
-    private List<NuGetPackage> Packages { get { return TypeMapManager.NuGetPackages; } }
+    private List<NuGetPackage> Packages { get { return TypeMapManager.NuGetPackages ?? new List<NuGetPackage>(); } }
 
     private List<BFUDetailsRowColumn<NuGetPackage>> Columns { get; set; }
 
@@ -50,6 +59,7 @@
             new BFUDetailsRowColumn<NuGetPackage>("Package", p => p.Package),
             new BFUDetailsRowColumn<NuGetPackage>("Version", p => p.Version)
         };
+        selection.SelectionMode = SelectionMode.None;
     }
 
     private async void Add()
@@ -58,6 +68,10 @@
         {
             await TypeLoader.LoadAssemblyFromNuGetAsync(packageName);
             SetMessage($"{packageName} added successfully!");
+        }
+        catch (PackageAlreadyInstalledException)
+        {
+            SetMessage($"{packageName} has already been installed. To install a different version, please refresh the page and try again.", MessageBarType.Blocked);
         }
         catch (Exception ex)
         {
@@ -74,6 +88,10 @@
         MessageType = messageBarType;
         Message = message;
     }
+
+    private void OnDismiss() { Message = null; StateHasChanged(); }
+
+    private void OnItemClick(NuGetPackage item) { Console.WriteLine("Click"); }
 
     private async void Close()
     {

@@ -32,6 +32,11 @@ namespace Tektonic.CodeGen
 
         public async System.Threading.Tasks.Task LoadAssemblyFromNuGetAsync(string packageName, string feedUrl = "")
         {
+            if (typeManager.NuGetPackages.Any(p => p.Package == packageName))
+            {
+                throw new PackageAlreadyInstalledException();
+            }
+
             var loader = new Loader();
             var package = new NuGetPackage { Package = packageName };
             var assemblies = await loader.LoadPackage(package);
