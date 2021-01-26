@@ -27,7 +27,7 @@
         </div>
         <div style="padding: 10px;">
             <p>
-                <BFUTextField Placeholder="NuGet Package" @bind-Value="packageName" @bind-Value:event="onchange" />
+                <BFUTextField Placeholder="NuGet Package" @bind-Value="packageName" @bind-Value:event="oninput" />
             </p>
         </div>
         <BFUActionButton Text="Add" IconName="Add" OnClick="Add" />
