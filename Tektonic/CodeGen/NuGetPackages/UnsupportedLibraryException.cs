@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Tektonic.CodeGen.Packages
+namespace Tektonic.CodeGen.NuGetPackages
 {
     [Serializable]
     internal class UnsupportedLibraryException : Exception
@@ -17,9 +17,9 @@ namespace Tektonic.CodeGen.Packages
             PackageName = packageName;
         }
 
-        public UnsupportedLibraryException(string packageName, string message) : base(message) 
-        { 
-            PackageName = packageName; 
+        public UnsupportedLibraryException(string packageName, string message) : base(message)
+        {
+            PackageName = packageName;
         }
 
         public UnsupportedLibraryException(string packageName, string message, Exception innerException) : base(message, innerException)

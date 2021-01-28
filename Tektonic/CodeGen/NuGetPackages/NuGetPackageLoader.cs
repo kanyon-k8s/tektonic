@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.DependencyModel;
-using NuGet;
-using NuGet.Configuration;
+﻿using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
-using NuGet.Packaging.Signing;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Protocol.LocalRepositories;
@@ -12,18 +9,17 @@ using NuGet.Resolver;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Tektonic.CodeGen.NuGetPackages;
 using ILogger = NuGet.Common.ILogger;
 
-namespace Tektonic.CodeGen.Packages
+namespace Tektonic.CodeGen.NuGetPackages
 {
-    public class Loader
+    // This was adapted from the AutoSteo.Extensions NuGet loader to load assemblies directly from the package stream to allow in-browser installations
+    // The original can be found at https://github.com/autostep/AutoStep.Extensions/blob/cb6bf386af86f25d87c0a3b688397d01c7772f0c/src/AutoStep.Extensions/NuGetPackagesLoader.cs and https://alistairevans.co.uk/2020/04/17/loading-plugins-extensions-at-run-time-from-nuget-in-net-core-part-1-nuget/
+    public class NuGetPackageLoader
     {
         public async Task<IEnumerable<Assembly>> LoadPackage(NuGetPackage package)
         {
@@ -36,25 +32,18 @@ namespace Tektonic.CodeGen.Packages
             List<Lazy<INuGetResourceProvider>> providers = new List<Lazy<INuGetResourceProvider>>();
             providers.AddRange(GetCoreV3());
 
-            // Establish the source repository provider; the available providers come from our custom settings.
             var sourceRepositoryProvider = new SourceRepositoryProvider(sourceProvider, providers);
-
-            // Get the list of repositories.
             var repositories = sourceRepositoryProvider.GetRepositories();
 
             using var sourceCacheContext = new NullSourceCacheContext();
             sourceCacheContext.DirectDownload = true;
-
             var logger = NuGet.Common.NullLogger.Instance;
 
-            // Replace this with a proper cancellation token.
             var cancellationToken = CancellationToken.None;
 
             // The framework we're using.
             var targetFramework = NuGetFramework.ParseFolder("net5.0");
             var allPackages = new HashSet<SourcePackageDependencyInfo>();
-
-            var dependencyContext = DependencyContext.Load(typeof(Loader).Assembly);
 
             var packageIdentity = await GetPackageIdentity(package, sourceCacheContext, logger, repositories, cancellationToken);
 
@@ -65,12 +54,10 @@ namespace Tektonic.CodeGen.Packages
 
             package.Version = packageIdentity.Version.ToNormalizedString();
 
-            await GetPackageDependencies(packageIdentity, sourceCacheContext, targetFramework, logger, repositories, dependencyContext, allPackages, cancellationToken);
+            await GetPackageDependencies(packageIdentity, sourceCacheContext, targetFramework, logger, repositories, allPackages, cancellationToken);
 
             var packagesToInstall = GetPackagesToInstall(sourceRepositoryProvider, logger, new[] { package }, allPackages);
 
-            // Where do we want to install our packages?
-            // BLAZOR: This needs to be handled in-memory
             var traversal = new PackageInstallationTraversal(targetFramework);
             await traversal.InstallPackages(sourceCacheContext, logger, packagesToInstall, cancellationToken);
 
@@ -104,21 +91,13 @@ namespace Tektonic.CodeGen.Packages
           NuGetPackage package, SourceCacheContext cache, ILogger nugetLogger,
           IEnumerable<SourceRepository> repositories, CancellationToken cancelToken)
         {
-            // Go through each repository.
-            // If a repository contains only pre-release packages (e.g. AutoStep CI), and 
-            // the configuration doesn't permit pre-release versions,
-            // the search will look at other ones (e.g. NuGet).
             foreach (var sourceRepository in repositories)
             {
-                // Get a 'resource' from the repository.
                 var findPackageResource = await sourceRepository.GetResourceAsync<FindPackageByIdResource>();
-
-                // Get the list of all available versions of the package in the repository.
                 var allVersions = await findPackageResource.GetAllVersionsAsync(package.Package, cache, nugetLogger, cancelToken);
 
                 NuGetVersion selected;
 
-                // Have we specified a version range?
                 if (package.Version != null)
                 {
                     if (!VersionRange.TryParse(package.Version, out var range))
@@ -127,7 +106,7 @@ namespace Tektonic.CodeGen.Packages
                     }
 
                     // Find the best package version match for the range.
-                    // Consider pre-release versions, but only if the extension is configured to use them.
+                    // Consider pre-release versions, but only if they have been allowed.
                     var bestVersion = range.FindBestMatch(allVersions.Where(v => package.AllowPrerelease || !v.IsPrerelease));
 
                     selected = bestVersion;
@@ -151,7 +130,7 @@ namespace Tektonic.CodeGen.Packages
         /// Searches the package dependency graph for the chain of all packages to install.
         /// </summary>
         private async Task GetPackageDependencies(PackageIdentity package, SourceCacheContext cacheContext, NuGetFramework framework,
-                                                  ILogger logger, IEnumerable<SourceRepository> repositories, DependencyContext hostDependencies,
+                                                  ILogger logger, IEnumerable<SourceRepository> repositories,
                                                   ISet<SourcePackageDependencyInfo> availablePackages, CancellationToken cancelToken)
         {
             // Don't recurse over a package we've already seen.
@@ -183,7 +162,7 @@ namespace Tektonic.CodeGen.Packages
                 var actualSourceDep = new SourcePackageDependencyInfo(
                     dependencyInfo.Id,
                     dependencyInfo.Version,
-                    dependencyInfo.Dependencies.Where(dep => !DependencySuppliedByHost(hostDependencies, dep)),
+                    dependencyInfo.Dependencies.Where(dep => !DependencySuppliedByHost(dep)),
                     dependencyInfo.Listed,
                     dependencyInfo.Source);
 
@@ -198,7 +177,6 @@ namespace Tektonic.CodeGen.Packages
                         framework,
                         logger,
                         repositories,
-                        hostDependencies,
                         availablePackages,
                         cancelToken);
                 }
@@ -207,34 +185,12 @@ namespace Tektonic.CodeGen.Packages
             }
         }
 
-        private bool DependencySuppliedByHost(DependencyContext hostDependencies, PackageDependency dep)
+        private bool DependencySuppliedByHost(PackageDependency dep)
         {
             if (RuntimeProvidedPackages.IsPackageProvidedByRuntime(dep.Id))
             {
                 return true;
             }
-
-            //// See if a runtime library with the same ID as the package is available in the host's runtime libraries.
-            //var runtimeLib = hostDependencies.RuntimeLibraries.FirstOrDefault(r => r.Name == dep.Id);
-
-            //if (runtimeLib is object)
-            //{
-            //    // What version of the library is the host using?
-            //    var parsedLibVersion = NuGetVersion.Parse(runtimeLib.Version);
-
-            //    if (parsedLibVersion.IsPrerelease)
-            //    {
-            //        // Always use pre-release versions from the host, otherwise it becomes
-            //        // a nightmare to develop across multiple active versions.
-            //        return true;
-            //    }
-            //    else
-            //    {
-            //        // Does the host version satisfy the version range of the requested package?
-            //        // If so, we can provide it; otherwise, we cannot.
-            //        return dep.VersionRange.Satisfies(parsedLibVersion);
-            //    }
-            //}
 
             return false;
         }

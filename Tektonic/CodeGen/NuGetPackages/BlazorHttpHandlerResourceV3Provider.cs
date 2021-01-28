@@ -7,8 +7,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tektonic.CodeGen.Packages
+namespace Tektonic.CodeGen.NuGetPackages
 {
+    // This was adapted from the NuGet.Client source available at https://github.com/NuGet/NuGet.Client/blob/788bc01a1b063a37841cdd6d035feb320e90e475/src/NuGet.Core/NuGet.Protocol/HttpSource/HttpHandlerResourceV3Provider.cs to allow in-browser execution
     public class BlazorHttpHandlerResourceV3Provider : ResourceProvider
     {
         public BlazorHttpHandlerResourceV3Provider()

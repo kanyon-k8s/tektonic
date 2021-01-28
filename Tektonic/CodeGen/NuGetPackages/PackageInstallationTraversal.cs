@@ -2,7 +2,6 @@
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Protocol.Core.Types;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +9,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Tektonic.CodeGen.Packages
+namespace Tektonic.CodeGen.NuGetPackages
 {
     public class PackageInstallationTraversal
     {

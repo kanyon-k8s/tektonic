@@ -1,8 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using System.Linq;
 using System.Reflection;
-using Tektonic.CodeGen.Packages;
+using Tektonic.CodeGen.NuGetPackages;
 
 namespace Tektonic.CodeGen
 {
@@ -37,7 +36,7 @@ namespace Tektonic.CodeGen
                 throw new PackageAlreadyInstalledException();
             }
 
-            var loader = new Loader();
+            var loader = new NuGetPackageLoader();
             var package = new NuGetPackage { Package = packageName };
             var assemblies = await loader.LoadPackage(package);
 

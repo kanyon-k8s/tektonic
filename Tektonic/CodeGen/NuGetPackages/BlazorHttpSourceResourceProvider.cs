@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Tektonic.CodeGen.NuGetPackages
 {
+    // This was adapted from the NuGet.Client source available at https://github.com/NuGet/NuGet.Client/blob/c995174aaea8d55e1504e9afba83696922497712/src/NuGet.Core/NuGet.Protocol/HttpSource/HttpSourceResourceProvider.cs to allow in-browser execution
     public class BlazorHttpSourceResourceProvider : ResourceProvider
     {
         // Only one HttpSource per source should exist. This is to reduce the number of TCP connections.
