@@ -6,6 +6,10 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <BlazorWebAssemblyEnableLinking>false</BlazorWebAssemblyEnableLinking>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="BlazorDownloadFile" Version="2.1.2" />
     <PackageReference Include="BlazorFluentUI.AllComponents" Version="4.0.2" />
