@@ -130,7 +130,7 @@ namespace Tektonic.Pages
                 string yaml = await yamlEditor.GetContent();
                 string csxFile = generator.GenerateCsx(yaml, BuildManifestOptions());
 
-                await BlazorDownloadFileService.DownloadFileFromText("manifest.csx", csxFile, "text/plain");
+                await BlazorDownloadFileService.DownloadFileFromText($"{ManifestName}.csx", csxFile, "text/plain");
 
             }
             catch (Exception ex)
@@ -149,7 +149,7 @@ namespace Tektonic.Pages
                 string yaml = await yamlEditor.GetContent();
                 string csFile = generator.GenerateCs(yaml, BuildManifestOptions());
 
-                await BlazorDownloadFileService.DownloadFileFromText("Manifest.generated.cs", csFile, "text/plain");
+                await BlazorDownloadFileService.DownloadFileFromText($"{ManifestName}.generated.cs", csFile, "text/plain");
 
             }
             catch (Exception ex)
@@ -168,7 +168,7 @@ namespace Tektonic.Pages
                 string yaml = await yamlEditor.GetContent();
                 var zip = generator.GenerateCsProj(yaml, BuildManifestOptions());
 
-                await BlazorDownloadFileService.DownloadFile("Manifest.csproj.zip", zip, "application/zip");
+                await BlazorDownloadFileService.DownloadFile($"{ManifestName}.csproj.zip", zip, "application/zip");
             }
             catch (Exception ex)
             {
