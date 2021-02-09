@@ -25,7 +25,7 @@ namespace Tektonic.CodeGen
         {
             CurrentTypeMap = initializer.GetTypeMap();
             FallbackType = initializer.GetFallbackType();
-            NuGetPackages.Add(new NuGetPackage() { Package = "Kanyon.Kubernetes", Version = "3.1.2" });
+            NuGetPackages.Add(new NuGetPackage() { Package = "Kanyon.Kubernetes", Version = "3.1.3" });
         }
     }
 }

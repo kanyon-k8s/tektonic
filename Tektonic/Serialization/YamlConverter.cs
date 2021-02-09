@@ -48,6 +48,8 @@ namespace Tektonic.Serialization
         /// <returns>collection of objects</returns>
         public static List<object> LoadAllFromString(string content, Dictionary<string, Type> typeMap, Type fallbackType)
         {
+            var walker = new ObjectWalker() { Strategies = new List<IObjectWalkStrategy> { new EmptyEnumerableWalkStrategy() } };
+
             if (typeMap == null)
             {
                 throw new ArgumentNullException(nameof(typeMap));
@@ -81,6 +83,7 @@ namespace Tektonic.Serialization
             {
                 var objType = types[ix++];
                 var obj = deserializer.Deserialize(parser, objType);
+                walker.Walk(obj);
                 results.Add(obj);
             }
 
