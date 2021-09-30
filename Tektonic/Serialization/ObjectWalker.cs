@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -38,30 +36,6 @@ namespace Tektonic.Serialization
                 {
                     Walk(nextStep);
                 }
-            }
-        }
-    }
-
-    public interface IObjectWalkStrategy
-    {
-        bool CanWalk(PropertyInfo info);
-        void Walk(Object o, PropertyInfo pi);
-    }
-
-    public class EmptyEnumerableWalkStrategy : IObjectWalkStrategy
-    {
-        public bool CanWalk(PropertyInfo info)
-        {
-            return info.PropertyType.IsAssignableTo(typeof(IEnumerable));
-        }
-
-        public void Walk(object o, PropertyInfo pi)
-        {
-            var value = pi.GetValue(o) as IEnumerable;
-
-            if (value != null && !value.Cast<object>().Any())
-            {
-                pi.SetValue(o, null);
             }
         }
     }
